@@ -20,5 +20,5 @@ DISTINCT
 FROM
 	public.shipping s 
 ORDER BY
-	agreement_id asc
+	agreement_id ASC
 ;
