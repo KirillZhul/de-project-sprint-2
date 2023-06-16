@@ -1,0 +1,41 @@
+DROP TABLE IF EXISTS public.shipping_info;
+
+-- table shipping_info
+CREATE TABLE public.shipping_info (
+	shipping_id int,
+	vendor_id int,
+	payment_amount numeric (7,2),
+	shipping_plan_datetime timestamp,
+ 	shipping_transfer_id int,
+  shipping_agreement_id int,
+	shipping_country_rate_id int,	
+	PRIMARY KEY (shipping_id),
+	FOREIGN KEY (shipping_transfer_id) REFERENCES shipping_transfer (id) ON UPDATE CASCADE,
+  FOREIGN KEY (shipping_agreement_id) REFERENCES public.shipping_agreement (agreement_id) ON UPDATE CASCADE,
+	FOREIGN KEY (shipping_country_rate_id) REFERENCES public.shipping_country_rates (id) ON UPDATE CASCADE
+);
+
+-- insert into shipping_info
+INSERT INTO public.shipping_info (shipping_id, vendor_id, payment_amount, shipping_plan_datetime, shipping_transfer_id, shipping_agreement_id, shipping_country_rate_id)
+WITH w AS (
+SELECT	
+    id, 
+	concat(transfer_type,':',transfer_model) AS shipping_transfer_description,
+	shipping_transfer_rate
+FROM 
+	public.shipping_transfer)
+SELECT
+DISTINCT 
+	s.shippingid AS shipping_id, 
+	s.vendorid AS vendor_id,
+	s.payment_amount,
+	s.shipping_plan_datetime,
+	w.id,
+	(regexp_split_to_array(s.vendor_agreement_description , E'\\:+'))[1]::int AS shipping_agreement_id,
+	scr.id AS shipping_country_rate_id	
+FROM
+	public.shipping s left join w
+	ON (s.shipping_transfer_description = w.shipping_transfer_description 
+	AND s.shipping_transfer_rate = w.shipping_transfer_rate)
+	LEFT JOIN public.shipping_country_rates scr ON s.shipping_country_base_rate = scr.shipping_country_base_rate 
+;
