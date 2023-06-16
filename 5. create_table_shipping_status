@@ -1,0 +1,45 @@
+DROP TABLE IF EXISTS public.shipping_status;
+
+-- table shipping_status
+CREATE TABLE public.shipping_status (
+	shipping_id int UNIQUE,
+	status text,
+	state text,
+	shipping_start_fact_datetime timestamp,
+	shipping_end_fact_datetime timestamp,
+	PRIMARY KEY (shipping_id)
+);
+
+-- insert into shipping_status 
+INSERT INTO public.shipping_status (shipping_id, status, state, shipping_start_fact_datetime, shipping_end_fact_datetime)
+WITH max_order AS
+  (SELECT shippingid,
+          MAX(state_datetime) AS max_state_datetime
+   FROM shipping
+   GROUP BY shippingid
+   ORDER BY shippingid),
+     booked AS
+  (SELECT shippingid,
+          state,
+          state_datetime AS shipping_start_fact_datetime
+   FROM shipping s
+   WHERE state = 'booked'
+   ORDER BY shippingid ASC, state_datetime ASC),
+     recieved AS
+  (SELECT shippingid,
+          state,
+          state_datetime AS shipping_end_fact_datetime
+   FROM shipping s
+   WHERE state = 'recieved'
+   ORDER BY shippingid ASC, state_datetime ASC)
+SELECT s.shippingid,
+       s.status,
+       s.state,
+       b.shipping_start_fact_datetime,
+       r.shipping_end_fact_datetime
+FROM shipping s
+LEFT JOIN max_order mo ON s.shippingid = mo.shippingid 
+LEFT JOIN booked b ON s.shippingid  = b.shippingid
+LEFT JOIN recieved r ON s.shippingid = r.shippingid
+WHERE s.state_datetime = mo.max_state_datetime
+ORDER BY shippingid;
