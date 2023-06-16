@@ -15,5 +15,5 @@ SELECT
 FROM 
 	public.shipping s 
 ORDER BY 
-	shipping_country_base_rate asc
+	shipping_country_base_rate ASC
 ;
