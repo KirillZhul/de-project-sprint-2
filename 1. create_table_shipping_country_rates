@@ -1,18 +1,19 @@
-drop table if exists public.shipping_country_rates;
+DROP TABLE IF EXISTS public.shipping_country_rates;
 
 -- table shipping_country_rates
-create table public.shipping_country_rates (
+CREATE TABLE public.shipping_country_rates (
 	id serial,
 	shipping_country text,
 	shipping_country_base_rate numeric(2,2),
-	primary key (id)
+	PRIMARY KEY (id)
 );
 
-insert into public.shipping_country_rates (shipping_country, shipping_country_base_rate )
-select
-	distinct 
+INSERT INTO public.shipping_country_rates (shipping_country, shipping_country_base_rate )
+SELECT
+	DISTINCT 
 		shipping_country, shipping_country_base_rate 
-from 
+FROM 
 	public.shipping s 
-order by
-	shipping_country_base_rate asc;
+ORDER BY 
+	shipping_country_base_rate asc
+;
